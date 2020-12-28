@@ -6,16 +6,23 @@
 #include <fstream>
 #include <typeinfo>
 
-#define PROGRAM_BEGIN int main(){ string tmp;
+#define PROGRAM_BEGIN int main(){ string tmp; string  temp_key;
 #define PROGRAM_END  ; return 0;} 
-#define JSON(temp) ;JSON_val temp 
-#define STRING(value) *new JSON_val((string)value) 
-#define NUMBER(value) *new JSON_val((double)value) 
-#define KEY(value) STRING(#value) //# is used to stringify value
+#define JSON(temp) ; JSON_val temp 
+#define STRING(value) JSON_val((string)value) 
+#define NUMBER(value) JSON_val((double)value)
+#define OBJECT  *new JSON_val
+/*
+ * # is used to stringify value
+ * trickiest so far (commit 3)
+ * assign true value to expression so that using expr1 ? expr2 : expr3 leads to calling both expr1 and expr3
+ */ 
+#define KEY(value) JSON_val(#value) = false ? true
 #define PRINT ; cout << 
 
 
 using namespace std;
+int tabs = 0;
 
 typedef enum JSON_Type{
     STRING,
@@ -23,10 +30,9 @@ typedef enum JSON_Type{
     DOUBLE,
     BOOLEAN,
     NIL,
-    OBJECT,
-    ARRAY
+    OBJ,
+    ARR
 }JSON_Type;
-
 
 class JSON_val{
     private:
@@ -34,6 +40,8 @@ class JSON_val{
         string strValue;
         double numValue;
         bool boolValue;
+        string key;
+        vector<JSON_val> object;
     public:
         string  temp;
 
@@ -44,6 +52,14 @@ class JSON_val{
 
     void setType(JSON_Type newType){
         this->type = newType;
+    }
+
+    string getKey(){
+        return this->key;
+    }
+
+    void setKey(string key){
+        this->key = key;
     }
 
     //basic methods regarding strings    
@@ -97,10 +113,23 @@ class JSON_val{
     }
     //-----END NEEDS TO BE CHECKED-----//
 
+    JSON_val(initializer_list<JSON_val> list){
+        cout << "=====>in object contructor with list of size: " << list.size() << endl;
+        vector<JSON_val>::iterator obj_iterator;
+        obj_iterator = this->object.begin();
+        obj_iterator = this->object.insert(obj_iterator, list);
+        this->type = OBJ; 
+    }
+
+    vector<JSON_val> getObject(){
+        return this->object;
+    }
+
+
     friend ostream &operator<<(ostream  &os, JSON_val &json){
         switch(json.getType()){
             case STRING:
-                cout << json.getStrValue() << endl;
+                cout << "\"" <<json.getStrValue() << "\"" << endl;
                 break;
             case INTEGER:
             case DOUBLE:
@@ -109,7 +138,26 @@ class JSON_val{
             case BOOLEAN:
                 cout << json.getBoolValue() << endl;
                 break;
+            case OBJ:
+                tabs+=2;
+                cout << "object{\n";
+                //cout << "size: " << json.getObject().size() << endl;
+                for(int i = 0; i < json.getObject().size(); i++){
+                    for(int j = 0; j<tabs; j++) cout << "   ";
+                    cout << i <<"-> type: " << json.getObject()[i].getType() << ": ";
+                    PRINT json.getObject()[i];
+                }
+                tabs-=2;
+                for(int j = 0; j<tabs; j++) cout << "   ";
+                cout << "}\n";
+
+                break;
         }
+    }
+
+    JSON_val &operator,(JSON_val *value){
+        this->object.push_back(value);
+        return *value;
     }
 
 };
