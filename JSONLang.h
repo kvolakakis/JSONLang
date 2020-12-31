@@ -26,7 +26,7 @@
 #define STRING(value) JSON_val((string)value, temp_key) 
 #define NUMBER(value) JSON_val((double)value, temp_key)
 #define OBJECT  (((setObjName(temp_key))) && false) ? true :  *new JSON_val
-#define ARRAY JSON_val("array")
+#define ARRAY (((setObjName(temp_key))) && false) ? true : JSON_val("3.1415926535897932384", "array")
 /*
  * # is used to stringify value
  * trickiest so far (commit 3)
@@ -41,7 +41,8 @@ int tabs = 0;/*
 string outer_name = "";
 string inner_name = "";*/
 vector<string> objNames;
-string temp_key; 
+string temp_key;
+bool inside_array = false; 
 typedef enum JSON_Type{
     STRING,
     INTEGER,
@@ -84,6 +85,8 @@ class JSON_val{
         bool boolValue;
         string key;
         vector<JSON_val> object;
+        vector<JSON_val> array;
+        bool inside_array  = false;
     public:
         string  temp;
 
@@ -109,9 +112,18 @@ class JSON_val{
     //STRING("..") constructor   
     JSON_val(string value, string key){
         this->key = key;
-        this->type = STRING;
-        this->strValue = value;
-        cout << "creating string " << this->strValue << endl;
+        if(value == "3.1415926535897932384"){
+            this->type = ARR;
+            ::inside_array = true;
+            cout << "creating array:  " << ::inside_array << endl;
+            PRINT *this;
+        }
+        else
+        {
+            this->type = STRING;
+            this->strValue = value;
+            cout << "creating string " << this->strValue << endl;    
+        }
     }
     string getStrValue(){
         return this->strValue;
@@ -165,18 +177,31 @@ class JSON_val{
 
     //OBJECT { } constructor. Might also be usedfor arrays as well I guess. Not sure yet :/. 
     JSON_val(initializer_list<JSON_val> list){
-        cout << "=====>in object contructor with list of size: " << list.size() << endl;
-        this->key = getObjName();
-        vector<JSON_val>::iterator obj_iterator;
-        obj_iterator = this->object.begin();
-        obj_iterator = this->object.insert(obj_iterator, list);
-        this->type = OBJ;  
+        cout << "here" << endl;
+        if(::inside_array){
+            cout << "=====>in array contructor with list of size: " << list.size() << endl;
+            //this->key = getObjName();
+            vector<JSON_val>::iterator arr_iterator;
+            arr_iterator = this->array.begin();
+            arr_iterator = this->array.insert(arr_iterator, list);
+            this->type = ARR; 
+        }
+        else{
+            cout << "=====>in object contructor with list of size: " << list.size() << endl;
+            this->key = getObjName();
+            vector<JSON_val>::iterator obj_iterator;
+            obj_iterator = this->object.begin();
+            obj_iterator = this->object.insert(obj_iterator, list);
+            this->type = OBJ;  
+        }
     }
 
     vector<JSON_val> getObject(){
         return this->object;
     }
-
+    vector<JSON_val> getArray(){
+        return this->array;
+    }
     //operator overloading for << operator (used for cout << ..;)
     friend ostream &operator<<(ostream  &os, JSON_val &json){
         cout << "\"" << json.getKey() <<"\" : ";
@@ -205,7 +230,12 @@ class JSON_val{
                 tabs-=2;
                 for(int j = 0; j<tabs; j++) cout << "   ";
                 cout << "}";
-
+            case ARR:
+                cout << "array: [";
+                for(int i = 0; i<json.getArray().size();  i++){
+                    cout<< json.getArray()[i] << ",";
+                }
+                cout << "]"  << endl;
                 break;
         }
     }
@@ -218,16 +248,24 @@ class JSON_val{
 
 
     //operators overloading not (yet) used
-    /*JSON_val &operator,(JSON_val value){
-        this->object.push_back(value);
-        return value;
+    JSON_val &operator,(JSON_val value){
+        value.setKey(to_string(this->array.size()));
+        this->array.push_back(value);
+        PRINT "in operator2" << endl;
+        PRINT this->getType() << endl;
+        //return value;
     }
-
-    JSON_val &operator[](JSON_val value){
+    //operator overloading for displaying array
+    /*JSON_val &operator[](JSON_val value){
         cout << "in array making " << value.getType() << endl;
         return value;
-    }
-
-    JSON_val operator[](JSON_val Head){return Head;};
-    JSON_val operator[](JSON_val *Head){return Head;};*/
+    }*/
+    JSON_val operator[](JSON_val *value){ 
+        cout << "pointer" << endl; 
+        return value;
+    };
+    JSON_val operator[](JSON_val value ){
+        cout << "no pointer" <<endl;    
+        return value;
+    };
 };
