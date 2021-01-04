@@ -29,8 +29,26 @@ PROGRAM_BEGIN
     }
 }*/
 
-JSON(arr) = ARRAY[NUMBER(1), NUMBER(2)]
-
+JSON(arr) = ARRAY[
+                    NUMBER(1), 
+                    NUMBER(2), 
+                    NUMBER(3), 
+                    STRING("p"),
+                    OBJECT { 
+                            KEY(key) : STRING("value"),
+                            KEY(key2) : STRING("value2"),
+                            KEY(number): NUMBER(32.6),
+                            KEY(inner) : OBJECT {
+                                KEY(p) : STRING("fuck yeah"),
+                                KEY(inner2) : OBJECT {
+                                                    KEY(p) : STRING("fuck yeah"),
+                                                },
+                            }
+                    }  
+                ]
+//JSON(arr) = OBJECT{
+//    KEY(0) : NUMBER(100)
+//}
 //JSON(arr) = JSON_val();//[NUMBER(2)]
 //PRINT temp
 

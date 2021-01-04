@@ -26,7 +26,7 @@
 #define STRING(value) JSON_val((string)value, temp_key) 
 #define NUMBER(value) JSON_val((double)value, temp_key)
 #define OBJECT  (((setObjName(temp_key))) && false) ? true :  *new JSON_val
-#define ARRAY (((setObjName(temp_key))) && false) ? true : JSON_val("3.1415926535897932384", "array")
+#define ARRAY (((setObjName(temp_key))) && false) ? true : JSON_val("3.1415926535897932384", getKeyName())
 /*
  * # is used to stringify value
  * trickiest so far (commit 3)
@@ -115,7 +115,7 @@ class JSON_val{
         if(value == "3.1415926535897932384"){
             this->type = ARR;
             ::inside_array = true;
-            cout << "creating array:  " << ::inside_array << endl;
+            cout << "creating array:  " << getKeyName() << endl;
             PRINT *this;
         }
         else
@@ -207,7 +207,7 @@ class JSON_val{
         cout << "\"" << json.getKey() <<"\" : ";
         switch(json.getType()){
             case STRING:
-                cout << "\"" <<json.getStrValue() << "\"";// << endl;
+                cout << "\"" << json.getStrValue() << "\"";// << endl;
                 break;
             case INTEGER:
             case DOUBLE:
@@ -218,9 +218,10 @@ class JSON_val{
                 break;
             case OBJ:
                 tabs+=2;
-                cout << "{\n";
+                cout << "{";
                 //cout << "size: " << json.getObject().size() << endl;
                 for(int i = 0; i < json.getObject().size(); i++){
+                    cout << endl;
                     for(int j = 0; j<tabs; j++) cout << "   ";
                     //cout << i <<"-> type: " << json.getObject()[i].getType() << ": ";
                     PRINT json.getObject()[i];
@@ -230,12 +231,14 @@ class JSON_val{
                 tabs-=2;
                 for(int j = 0; j<tabs; j++) cout << "   ";
                 cout << "}";
+                break;
             case ARR:
-                cout << "array: [";
+                cout << "[\n";
                 for(int i = 0; i<json.getArray().size();  i++){
-                    cout<< json.getArray()[i] << ",";
+                    PRINT json.getArray()[i];
+                    if(i != json.getArray().size()-1) cout << ", \n";
                 }
-                cout << "]"  << endl;
+                cout << "\n]"  << endl;
                 break;
         }
     }
@@ -243,17 +246,23 @@ class JSON_val{
     //operator overloading for , operator (used to separate OBJECT, and  possibly ARRAY too, (key, value) pairs)
     JSON_val &operator,(JSON_val *value){
         this->object.push_back(value);
-        return *value;
+        return *this;
     }
 
 
     //operators overloading not (yet) used
     JSON_val &operator,(JSON_val value){
+        //FIRST INSERTION GODDAMMIT
+        if(this->array.size() == 0){
+            //this->setKey("0");
+            this->array.push_back(this);
+            this->array[0].setKey("0");
+            this->setType(ARR);
+        }
         value.setKey(to_string(this->array.size()));
         this->array.push_back(value);
-        PRINT "in operator2" << endl;
-        PRINT this->getType() << endl;
-        //return value;
+        cout << "in array operator overloading" << endl;
+        return *this;
     }
     //operator overloading for displaying array
     /*JSON_val &operator[](JSON_val value){
@@ -265,6 +274,8 @@ class JSON_val{
         return value;
     };
     JSON_val operator[](JSON_val value ){
+        //this->setType(ARR);
+        PRINT *this;
         cout << "no pointer" <<endl;    
         return value;
     };
