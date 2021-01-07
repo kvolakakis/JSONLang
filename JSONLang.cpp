@@ -103,6 +103,9 @@ PRINT arr
 SET arr[4]["inner"] ASSIGN STRING("SIKE")
 PRINT arr
 SET arr[4]["key"] ASSIGN arr
+PRINT arr 
+ERASE arr[3]
+
 PRINT arr
 PROGRAM_END
 

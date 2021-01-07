@@ -5,7 +5,7 @@
 #include <stdarg.h> 
 #include <fstream>
 #include <typeinfo>
-#define PROGRAM_BEGIN int main(){ string tmp; 
+#define PROGRAM_BEGIN int main(){ string tmp; JSON_val dummy = NULL; 
 #define PROGRAM_END  ; return 0;} 
 #define PRINT ;cout <<
 #define JSON(temp) ;  setKeyName(#temp); JSON_val temp  
@@ -23,7 +23,7 @@
 #define KEY(value) ((setKeyName(#value)) && false) ? true
 #define SET ;
 #define ASSIGN |=
-#define ERASE |
+#define ERASE ; dummy |
 #define APPEND ^= 
 
 
@@ -328,9 +328,16 @@ class JSON_val{
         this->setKey(old_key);
         return *this;
     }
+
     //operator overloading for erase
     JSON_val &operator|(JSON_val value){
-
+        cout << "deleting " <<  value.getKey() << endl;
+        value.setKey("");
+        value.setStrValue("");
+        value.setNumValue((double)-1111111);
+        value.array.clear();
+        value.object.clear();
+        return *this;
     }
 
     //operator overloading for append
