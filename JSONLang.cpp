@@ -3,7 +3,7 @@
 
 PROGRAM_BEGIN
 
-JSON(emptyObj) = OBJECT {}
+/*JSON(emptyObj) = OBJECT {}
 
 JSON(book) = OBJECT {
     KEY(title) : STRING("GoneEEEEEEE Girl"),
@@ -33,7 +33,8 @@ JSON(students) = ARRAY [
             OBJECT { KEY(hy150) : NUMBER(9) }
         ]
     }
-]
+]*/
+
 //JSON(temp_string) = STRING("first attempt")
 //JSON(temp_integer) = NUMBER(3)
 //JSON(temp_double) = NUMBER(3.14)
@@ -60,7 +61,7 @@ JSON(students) = ARRAY [
     }
 }*/
 
-/*JSON(arr) = ARRAY[
+JSON(arr) = ARRAY[
                     NUMBER(1), 
                     NUMBER(2), 
                     NUMBER(3), 
@@ -76,25 +77,23 @@ JSON(students) = ARRAY [
                                                 },
                             }
                     }  
-                ]*/
+                ]
 //JSON(arr) = OBJECT{
 //    KEY(0) : NUMBER(100)
 //}
 //JSON(arr) = JSON_val();//[NUMBER(2)]
-//PRINT temp
-
-//JSON(arr) = ARRAY[NUMBER(2), STRING("3")]
 
 PRINT "\n\n===program output===\n"
-//PRINT temp_string
-//PRINT temp_integer
-//PRINT temp_double
-//PRINT outer
-//PRINT arr
+/*PRINT temp_string
+PRINT temp_integer
+PRINT temp_double
+PRINT outer
+PRINT arr
 PRINT emptyObj
 PRINT emptyArray
 PRINT book
 PRINT week_temperatures
-PRINT students
+PRINT students*/
+PRINT arr[4]["inner"]["inner2"]["p"]
 PROGRAM_END
 

@@ -7,6 +7,7 @@
 #include <typeinfo>
 #define PROGRAM_BEGIN int main(){ string tmp; 
 #define PROGRAM_END  ; return 0;} 
+#define PRINT ;cout <<
 #define JSON(temp) ;  setKeyName(#temp); JSON_val temp  
 #define STRING(value) JSON_val((string)value, temp_key) 
 #define NUMBER(value) JSON_val((double)value, temp_key)
@@ -20,7 +21,10 @@
  * assign true value to expression so that using expr1 ? expr2 : expr3 leads to calling both expr1 and expr3
  */ 
 #define KEY(value) ((setKeyName(#value)) && false) ? true
-#define PRINT ;cout << 
+#define SET ;
+#define ASSIGN |=
+#define ERASE |
+#define APPEND ^= 
 
 
 using namespace std;
@@ -72,6 +76,11 @@ int setKeyName(string name){
     ::temp_key = name;
     return 1;
 }
+
+void error_message(string mess){
+    cout << "ERROR! " << mess << " " << endl;
+    exit(1);
+}
 //END helper functions to preserve object pairs' keys
 
 //TODO: check if it's possible to keep different types of values using templates
@@ -85,9 +94,9 @@ class JSON_val{
         string key;
         vector<JSON_val> object;
         vector<JSON_val> array;
-        bool inside_array  = false;
+        bool arr_obj_cell  = false;
         bool arrayDisplay = false;
-        int scope;
+        int scope; 
     public:
         string  temp;
 
@@ -164,7 +173,7 @@ class JSON_val{
     //-----NEEDS TO BE CHECKED..NOT SURE IF RIGHT-----//
     //basic methods regarding bool values (true/false)
     JSON_val(bool value){
-        cout << ">>>>>>>>>>>>>>>>>>>>HERE";
+        cout << "inside boolean constructor" << endl;
         this->type = BOOLEAN;
         this->key = ::getKeyName();
         this->boolValue = value;
@@ -196,7 +205,7 @@ class JSON_val{
     }
     //operator overloading for << operator (used for cout << ..;)
     friend ostream &operator<<(ostream  &os, JSON_val &json){
-        if(!json.arrayDisplay) 
+        if(!json.arrayDisplay && !json.arr_obj_cell) 
             cout << "\"" << json.getKey() <<"\" : ";
         switch(json.getType()){
             case STRING:
@@ -243,6 +252,8 @@ class JSON_val{
                 cout << "]"  << endl;
                 break;
         }
+        //used to print a cell of an array or an object (without key)
+        if(json.arr_obj_cell) json.arr_obj_cell = !json.arr_obj_cell; 
     }
 
     //operator overloading for , operator (used to separate OBJECT, and  possibly ARRAY too, (key, value) pairs)
@@ -274,4 +285,53 @@ class JSON_val{
         value.setKey(getArrName());
         return value;
     };
+
+    JSON_val &operator[](int index){
+        if(this->getType() == ARR){
+            this->array[index].arr_obj_cell = true;
+            return this->array[index];
+        }  
+        else if(this->getType() == OBJ){
+            for(int i = 0; i < this->getObject().size(); i++)
+                if(this->getObject()[i].getKey() == to_string(index)){
+                    this->object[i].arr_obj_cell = true;
+                    return this->object[i];
+                }
+        }    
+        else{
+            ::error_message("invalid type before []");
+        }
+
+        return *this;
+    };
+
+    JSON_val &operator[](const char* key){
+        if(this->getType() == OBJ){
+            for(int i = 0; i < this->getObject().size(); i++)
+                if(this->getObject()[i].getKey() == key){
+                    this->object[i].arr_obj_cell = true;
+                    return this->object[i];
+                }
+        }    
+        else{
+            ::error_message("invalid type before [string]");
+        }
+        return *this;
+    };
+
+    //operator overloading for set .. assign
+    JSON_val &operator|=(JSON_val ){
+
+    }
+    //operator overloading for erase
+    JSON_val &operator|(JSON_val ){
+
+    }
+
+    //operator overloading for append
+    JSON_val &operator^=(JSON_val ){
+
+    }
+
+
 };
