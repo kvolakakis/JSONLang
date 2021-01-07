@@ -320,16 +320,21 @@ class JSON_val{
     };
 
     //operator overloading for set .. assign
-    JSON_val &operator|=(JSON_val ){
-
+    JSON_val &operator|=(JSON_val value){
+        string old_key = this->getKey();
+        bool inside_array = this->arrayDisplay; 
+        *this = value;
+        this->arrayDisplay = inside_array;
+        this->setKey(old_key);
+        return *this;
     }
     //operator overloading for erase
-    JSON_val &operator|(JSON_val ){
+    JSON_val &operator|(JSON_val value){
 
     }
 
     //operator overloading for append
-    JSON_val &operator^=(JSON_val ){
+    JSON_val &operator^=(JSON_val value){
 
     }
 

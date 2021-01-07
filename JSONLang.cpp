@@ -94,6 +94,15 @@ PRINT emptyArray
 PRINT book
 PRINT week_temperatures
 PRINT students*/
-PRINT arr[4]["inner"]["inner2"]["p"]
+
+//PRINT arr[4]["inner"]["inner2"]["p"] << endl;
+//; arr[3] |= JSON_val((double)69, temp_key)
+PRINT arr
+SET arr[3] ASSIGN NUMBER(69)
+PRINT arr
+SET arr[4]["inner"] ASSIGN STRING("SIKE")
+PRINT arr
+SET arr[4]["key"] ASSIGN arr
+PRINT arr
 PROGRAM_END
 
