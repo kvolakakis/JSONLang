@@ -7,7 +7,7 @@
 #include <typeinfo>
 #define PROGRAM_BEGIN int main(){ string tmp; JSON_val dummy = NULL; 
 #define PROGRAM_END  ; return 0;} 
-#define PRINT ;cout <<
+#define PRINT ;cout << endl; for(int j = 0; j<tabs; j++) cout << "  "; cout <<
 #define JSON(temp) ;  setKeyName(#temp); JSON_val temp  
 #define STRING(value) JSON_val((string)value, temp_key) 
 #define NUMBER(value) JSON_val((double)value, temp_key)
@@ -78,7 +78,7 @@ int setKeyName(string name){
 }
 
 void error_message(string mess){
-    cout << "ERROR! " << mess << " " << endl;
+    cout << "ERROR! file: '" <<__FILE__ << "', line: " << __LINE__ << ". "<< mess << "! " << endl;
     exit(1);
 }
 //END helper functions to preserve object pairs' keys
@@ -96,7 +96,8 @@ class JSON_val{
         vector<JSON_val> array;
         bool arr_obj_cell  = false;
         bool arrayDisplay = false;
-        int scope; 
+        int scope;
+        bool visible = true;
     public:
         string  temp;
 
@@ -205,55 +206,58 @@ class JSON_val{
     }
     //operator overloading for << operator (used for cout << ..;)
     friend ostream &operator<<(ostream  &os, JSON_val &json){
-        if(!json.arrayDisplay && !json.arr_obj_cell) 
-            cout << "\"" << json.getKey() <<"\" : ";
-        switch(json.getType()){
-            case STRING:
-                cout << "\"" << json.getStrValue() << "\"";// << endl;
-                break;
-            case INTEGER:
-            case DOUBLE:
-                cout << json.getNumValue();// << endl;
-                break;
-            case BOOLEAN:
-                if(json.getBoolValue()) 
-                    cout << "true"; 
-                else    
-                    cout << "false";
-                break;
-            case OBJ:
-                tabs+=2;
-                cout << "{";
-                //cout << "size: " << json.getObject().size() << endl;
-                for(int i = 0; i < json.getObject().size(); i++){
+        if(json.visible){
+            if(!json.arrayDisplay && !json.arr_obj_cell) 
+                cout << "\"" << json.getKey() <<"\" : ";
+            switch(json.getType()){
+                case STRING:
+                    cout << "\"" << json.getStrValue() << "\"";// << endl;
+                    break;
+                case INTEGER:
+                case DOUBLE:
+                    cout << json.getNumValue();// << endl;
+                    break;
+                case BOOLEAN:
+                    if(json.getBoolValue()) 
+                        cout << "true"; 
+                    else    
+                        cout << "false";
+                    break;
+                case OBJ:
+                    tabs+=2;
+                    cout << "{";
+                    //cout << "size: " << json.getObject().size() << endl;
+                    for(int i = 0; i < json.getObject().size(); i++){
+                        //if(json.getObject()[i].visible) cout << endl;
+                        //for(int j = 0; j<tabs; j++) cout << "  ";
+                        //cout << i <<"-> type: " << json.getObject()[i].getType() << ": ";
+                        PRINT json.getObject()[i];
+                        if(i != json.getObject().size() - 1 && json.getObject()[i].visible) cout << ", "<< endl;
+                    }
                     cout << endl;
+                    tabs-=2;
                     for(int j = 0; j<tabs; j++) cout << "  ";
-                    //cout << i <<"-> type: " << json.getObject()[i].getType() << ": ";
-                    PRINT json.getObject()[i];
-                    if(i != json.getObject().size() - 1) cout << ", ";
+                    cout << "}";
+                    break;
+                case ARR:
+                    tabs+=2;
+                    cout << "[";
+                    for(int i = 0; i<json.getArray().size();  i++){
+                        //if(json.getArray()[i].visible) cout << endl;
+                        //for(int j = 0; j<tabs; j++) cout << "  ";
+                        PRINT json.getArray()[i];
+                        if(i != json.getArray().size()-1 && json.getArray()[i].visible) cout << ", " << endl;
+                    }
                     cout << endl;
-                }
-                tabs-=2;
-                for(int j = 0; j<tabs; j++) cout << "  ";
-                cout << "}" << endl;;
-                break;
-            case ARR:
-                tabs+=2;
-                cout << "[";
-                for(int i = 0; i<json.getArray().size();  i++){
-                    cout << endl;
+                    tabs-=2;
                     for(int j = 0; j<tabs; j++) cout << "  ";
-                    PRINT json.getArray()[i];
-                    if(i != json.getArray().size()-1) cout << ", ";
-                    cout << endl;
-                }
-                tabs-=2;
-                for(int j = 0; j<tabs; j++) cout << "  ";
-                cout << "]"  << endl;
-                break;
+                    cout << "]";
+                    break;
+            }
+            //used to print a cell of an array or an object (without key)
+            if(json.arr_obj_cell) json.arr_obj_cell = !json.arr_obj_cell;
         }
-        //used to print a cell of an array or an object (without key)
-        if(json.arr_obj_cell) json.arr_obj_cell = !json.arr_obj_cell; 
+         
     }
 
     //operator overloading for , operator (used to separate OBJECT, and  possibly ARRAY too, (key, value) pairs)
@@ -288,18 +292,29 @@ class JSON_val{
 
     JSON_val &operator[](int index){
         if(this->getType() == ARR){
-            this->array[index].arr_obj_cell = true;
-            return this->array[index];
+            if(index < this->array.size()){
+                this->array[index].arr_obj_cell = true;
+                return this->array[index];
+            }
+            else{
+                string error = "Index '" + to_string(index) + "' of array '" + this->getKey() + "' out of bounds. Array is of size: " + to_string(this->array.size());
+                ::error_message(error);
+            }
         }  
         else if(this->getType() == OBJ){
-            for(int i = 0; i < this->getObject().size(); i++)
+            for(int i = 0; i < this->getObject().size(); i++){
                 if(this->getObject()[i].getKey() == to_string(index)){
                     this->object[i].arr_obj_cell = true;
                     return this->object[i];
                 }
+            }
+            //if we reach here it means we dont have a pair with "index" as a key. So we make a new one;
+            JSON_val *temp = new JSON_val((string)"dummy", to_string(index));
+            this->object.push_back(*temp);
+            return this->object[this->object.size() - 1];
         }    
         else{
-            ::error_message("invalid type before []");
+            ::error_message("Invalid type of json lvalue before []");
         }
 
         return *this;
@@ -307,11 +322,17 @@ class JSON_val{
 
     JSON_val &operator[](const char* key){
         if(this->getType() == OBJ){
-            for(int i = 0; i < this->getObject().size(); i++)
+            for(int i = 0; i < this->getObject().size(); i++){
                 if(this->getObject()[i].getKey() == key){
                     this->object[i].arr_obj_cell = true;
                     return this->object[i];
                 }
+            }
+            //if we reach here it means we dont have a pair with "key" as a key. So we make a new one;
+            JSON_val *temp = new JSON_val((string)"new value", key);
+            this->object.push_back(*temp);
+            return this->object[this->object.size() - 1];
+            
         }    
         else{
             ::error_message("invalid type before [string]");
@@ -330,14 +351,15 @@ class JSON_val{
     }
 
     //operator overloading for erase
-    JSON_val &operator|(JSON_val value){
-        cout << "deleting " <<  value.getKey() << endl;
-        value.setKey("");
+    JSON_val &operator|(JSON_val &value){
+        PRINT *this;
+        //value.setKey(""); /*key might be needed for future use. For the sake of reusability we dont delete it.*/ 
         value.setStrValue("");
         value.setNumValue((double)-1111111);
         value.array.clear();
         value.object.clear();
-        return *this;
+        value.visible  = false;
+        return value;
     }
 
     //operator overloading for append
