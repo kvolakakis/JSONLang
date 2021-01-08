@@ -2,7 +2,7 @@
 
 PROGRAM_BEGIN
 
-PRINT "Basic initializations examples"
+PRINT "\n\nBasic initializations examples\n"
 //define emptyObj json with empty object
 JSON(emptyObj) = OBJECT {}
 PRINT emptyObj
@@ -49,7 +49,7 @@ JSON(students) = ARRAY[
 PRINT students
 
 /* EVERYTHING RELATED TO JSON MANIPULATION */
-PRINT "\"SET json_lvalue ASSIGN value\" examples"
+PRINT "\n\n\"SET json_lvalue ASSIGN value\" examples\n"
 //change 3rdday temperature from 19 to 22
 SET week_temperatures[2] ASSIGN NUMBER(22)
 PRINT week_temperatures
@@ -62,6 +62,15 @@ PRINT students
 //assign new object in emptyObj json
 SET emptyObj ASSIGN OBJECT{ KEY(a) : STRING("alpha") }
 PRINT emptyObj
+
+PRINT "\n\n\"ERASE json_value_or_variable\" examples\n"
+ERASE book["author"]["age"] //removes age from author object of book
+PRINT book
+ERASE book["type"] //removes type of book
+PRINT book
+ERASE book //removes all book data, now book is an empty object
+PRINT book
+
 
 PRINT "~.~.~.~.~.~.~.~ PROGRAM OUTPUT ~.~.~.~.~.~.~.~"
 

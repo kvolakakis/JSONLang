@@ -7,7 +7,7 @@
 #include <typeinfo>
 #define PROGRAM_BEGIN int main(){ string tmp; JSON_val dummy = NULL; 
 #define PROGRAM_END  ; return 0;} 
-#define PRINT ;cout << endl; for(int j = 0; j<tabs; j++) cout << "  "; cout <<
+#define PRINT ; if(print_newline) cout << endl; print_newline = true; for(int j = 0; j<tabs; j++) cout << "  "; cout <<
 #define JSON(temp) ;  setKeyName(#temp); JSON_val temp  
 #define STRING(value) JSON_val((string)value, temp_key) 
 #define NUMBER(value) JSON_val((double)value, temp_key)
@@ -35,6 +35,7 @@ vector<string> objNames;
 vector<string> arrNames;
 string temp_key;
 bool inside_array = false; 
+bool print_newline = true;
 typedef enum JSON_Type{
     STRING,
     INTEGER,
@@ -228,13 +229,13 @@ class JSON_val{
                     cout << "{";
                     //cout << "size: " << json.getObject().size() << endl;
                     for(int i = 0; i < json.getObject().size(); i++){
-                        //if(json.getObject()[i].visible) cout << endl;
+                        if(!json.getObject()[i].visible) ::print_newline = false;
                         //for(int j = 0; j<tabs; j++) cout << "  ";
                         //cout << i <<"-> type: " << json.getObject()[i].getType() << ": ";
                         PRINT json.getObject()[i];
                         if(i != json.getObject().size() - 1 && json.getObject()[i].visible) cout << ", "<< endl;
                     }
-                    cout << endl;
+                    if(json.getObject().size() !=  0) cout << endl;
                     tabs-=2;
                     for(int j = 0; j<tabs; j++) cout << "  ";
                     cout << "}";
@@ -243,12 +244,12 @@ class JSON_val{
                     tabs+=2;
                     cout << "[";
                     for(int i = 0; i<json.getArray().size();  i++){
-                        //if(json.getArray()[i].visible) cout << endl;
+                        if(!json.getArray()[i].visible) ::print_newline = false;
                         //for(int j = 0; j<tabs; j++) cout << "  ";
                         PRINT json.getArray()[i];
                         if(i != json.getArray().size()-1 && json.getArray()[i].visible) cout << ", " << endl;
                     }
-                    cout << endl;
+                    if(json.getArray().size()) cout << endl;
                     tabs-=2;
                     for(int j = 0; j<tabs; j++) cout << "  ";
                     cout << "]";
@@ -352,13 +353,13 @@ class JSON_val{
 
     //operator overloading for erase
     JSON_val &operator|(JSON_val &value){
-        PRINT *this;
         //value.setKey(""); /*key might be needed for future use. For the sake of reusability we dont delete it.*/ 
         value.setStrValue("");
         value.setNumValue((double)-1111111);
         value.array.clear();
         value.object.clear();
-        value.visible  = false;
+        if(value.getType() != OBJ && value.getType() != ARR)
+            value.visible  = false;
         return value;
     }
 
