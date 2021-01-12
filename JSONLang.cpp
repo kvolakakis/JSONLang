@@ -61,7 +61,7 @@ PRINT students
 
 //assign new object in emptyObj json
 SET emptyObj ASSIGN OBJECT{ KEY(a) : STRING("alpha") }
-PRINT emptyObj
+PRINT emptyObj["a"]
 
 PRINT "\n\n\"ERASE json_value_or_variable\" examples\n"
 ERASE book["author"]["age"] //removes age from author object of book
@@ -76,11 +76,30 @@ PRINT "\n\n\"SET json_array APPEND value1, value2, ?\" examples\n"
 SET week_temperatures APPEND NUMBER(23)//, NUMBER(22), NUMBER(20)
 PRINT week_temperatures
 //appends a grade for course hy255
-//JSON(P) = ARRAY[ NUMBER(1), NUMBER(2)] + ARRAY[NUMBER(3), NUMBER(4)]//OBJECT { KEY(hy255) : NUMBER(9) } + OBJECT { KEY(hy215) : NUMBER(8.5) }
+SET students[0]["grades"] APPEND OBJECT { KEY(hy255) : NUMBER(9) }
 PRINT students
 
-//SET students[0]["grades"] APPEND STRING("3") + STRING("3")
-//PRINT students[0]["grades"]
+PRINT "\n\nArithmetic operators examples\n"
+
+PRINT STRING("hello") + STRING("world")
+//JSON(A) = ARRAY[ NUMBER(1), NUMBER(2)] + ARRAY[ NUMBER(3), NUMBER(4)] 
+JSON(hy352_ang) = OBJECT{ KEY(exam) : NUMBER(8), KEY(project) : NUMBER(9.2) }
+PRINT hy352_ang
+
+JSON(Students) = ARRAY[
+                    OBJECT {
+                        KEY(name) : STRING("Angela ") + STRING("Martin"),
+                        KEY(id) : NUMBER(4444),
+                        KEY(grades) : ARRAY[
+                        OBJECT {
+                            KEY(hy352):
+                            hy352_ang["exam"] * NUMBER(0.75) + hy352_ang["project"] * NUMBER(0.25)
+                        }
+                        ]
+                    }
+                ]
+
+PRINT Students;
 PRINT "~.~.~.~.~.~.~.~ PROGRAM OUTPUT ~.~.~.~.~.~.~.~"
 
 PROGRAM_END

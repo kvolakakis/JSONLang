@@ -185,10 +185,11 @@ class JSON_val{
     //-----NEEDS TO BE CHECKED..NOT SURE IF RIGHT-----//
     //basic methods regarding bool values (true/false)
     JSON_val(bool value){
-        cout << "inside boolean constructor" << endl;
+        cout << "inside boolean constructor for";// << endl;
         this->type = BOOLEAN;
         this->key = ::getKeyName();
         this->boolValue = value;
+        cout << this->key << endl;
     }
 
     double getBoolValue(){
@@ -297,6 +298,14 @@ class JSON_val{
         return value;
     }*/
     JSON_val operator[](JSON_val value){
+        PRINT *this;
+        //FIRST INSERTION GODDAMMIT
+        if(this->array.size() == 0){ 
+            value.array.push_back(value);
+            value.array[0].setKey("0");
+            value.array[0].arrayDisplay = true;
+            value.setType(ARR);
+        }
         value.setKey(getArrName());
         return value;
     };
@@ -391,6 +400,7 @@ class JSON_val{
             return true;
         return false;
     }
+
     JSON_val &operator+(JSON_val value){
         string temp = "";
         JSON_val tmp = NULL;
@@ -419,7 +429,7 @@ class JSON_val{
                     }
                     break;
                 default:
-                    error_message("Operator '+' can not be used for JSON value with given type.");
+                    error_message("Operator '+' can not be used for JSON values with given types.");
                     break;   
             }
         }
@@ -429,4 +439,77 @@ class JSON_val{
         return *this;
     }
 
+    JSON_val &operator-(JSON_val value){
+        if(this->getType() == value.getType()){
+            if(checkIfNumber(*this)) //splitted those if just for error handling purposes
+                this->setNumValue(this->getNumValue() - value.getNumValue());
+            else
+                error_message("Operator '-' can not be used for JSON values with given types.");
+        }
+        else{
+            error_message("JSON types mismatch between values given for '-' operator");
+        }
+        return *this;
+    }
+
+    JSON_val &operator*(JSON_val value){
+        if(this->getType() == value.getType()){
+            if(checkIfNumber(*this)) //splitted those if just for error handling purposes
+                this->setNumValue(this->getNumValue() * value.getNumValue());
+            else
+                error_message("Operator '*' can not be used for JSON values with given types.");
+        }
+        else{
+            error_message("JSON types mismatch between values given for '*' operator");
+        }
+        return *this;
+    }
+
+    JSON_val &operator/(JSON_val value){
+        if(this->getType() == value.getType()){
+            if(checkIfNumber(*this)) //splitted those if just for error handling purposes
+                if(value.getNumValue()!=0)
+                    this->setNumValue(this->getNumValue() / value.getNumValue());
+                else
+                    error_message("Cannot divide by 0 bro..lol.");
+            else
+                error_message("Operator '/' can not be used for JSON values with given types.");
+        }
+        else{
+            error_message("JSON types mismatch between values given for '/' operator");
+        }
+        return *this;
+    }
+
+    JSON_val &operator%(JSON_val value){
+        if(this->getType() == value.getType()){
+            if(checkIfNumber(*this)) //splitted those if just for error handling purposes
+                if(value.getNumValue()!=0)
+                    this->setNumValue((double)((int)this->getNumValue() % (int)value.getNumValue()));//no modulo between doubles. Supposed you needed conversion to integers
+                else
+                    error_message("Cannot divide by 0 bro..lol.");
+            else
+                error_message("Operator '%' can not be used for JSON values with given types.");
+        }
+        else{
+            error_message("JSON types mismatch between values given for '%' operator");
+        }
+        return *this;
+    }
+
+    JSON_val &operator<(JSON_val value){
+        bool result;
+        if(this->getType() == value.getType() && checkIfNumber(*this)){
+                result = this->getNumValue() < value.getNumValue();
+        }
+        else{
+            error_message("JSON types mismatch between values given for '%' operator");
+        }
+        string old_key = this->getKey();
+        JSON_val dummy = NULL;
+        dummy | *this; //erasing previous *this JSON_val
+        *this = JSON_val((bool)result);
+        this->setKey(old_key);
+        return *this;
+    }
 };
