@@ -71,7 +71,16 @@ PRINT book
 ERASE book //removes all book data, now book is an empty object
 PRINT book
 
+PRINT "\n\n\"SET json_array APPEND value1, value2, ?\" examples\n"
+//appends values 23, 22, 20 to the end of the temperature array
+SET week_temperatures APPEND NUMBER(23)//, NUMBER(22), NUMBER(20)
+PRINT week_temperatures
+//appends a grade for course hy255
+//JSON(P) = ARRAY[ NUMBER(1), NUMBER(2)] + ARRAY[NUMBER(3), NUMBER(4)]//OBJECT { KEY(hy255) : NUMBER(9) } + OBJECT { KEY(hy215) : NUMBER(8.5) }
+PRINT students
 
+//SET students[0]["grades"] APPEND STRING("3") + STRING("3")
+//PRINT students[0]["grades"]
 PRINT "~.~.~.~.~.~.~.~ PROGRAM OUTPUT ~.~.~.~.~.~.~.~"
 
 PROGRAM_END

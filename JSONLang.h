@@ -19,6 +19,7 @@
  * # is used to stringify value
  * trickiest so far (commit 3)
  * assign true value to expression so that using expr1 ? expr2 : expr3 leads to calling both expr1 and expr3
+ * Edit: not even close to the trickiest
  */ 
 #define KEY(value) ((setKeyName(#value)) && false) ? true
 #define SET ;
@@ -28,8 +29,6 @@
 
 
 using namespace std;
-//JSON_val temp = *new JSON_val{ KEY(3) : JSON_val((string)"1", temp_key)};
-//JSON_val temp = JSON_val("3.1415926535897932384", temp_key)[ JSON_val((string)"1", temp_key)];
 int tabs = 0;
 vector<string> objNames;
 vector<string> arrNames;
@@ -45,6 +44,16 @@ typedef enum JSON_Type{
     OBJ,
     ARR
 }JSON_Type;
+
+string types[] = {
+    "string",
+    "number",
+    "number",
+    "boolean",
+    "null",
+    "object",
+    "arr"
+};
 
 //START helper functions to preserve object pairs' keys and arrays values
 string getObjName(){
@@ -79,7 +88,7 @@ int setKeyName(string name){
 }
 
 void error_message(string mess){
-    cout << "ERROR! file: '" <<__FILE__ << "', line: " << __LINE__ << ". "<< mess << "! " << endl;
+    cout << endl << "ERROR! file: '" <<__FILE__ << "', line: " << __LINE__ << ". "<< mess << "! " << endl;
     exit(1);
 }
 //END helper functions to preserve object pairs' keys
@@ -128,6 +137,7 @@ class JSON_val{
         this->key = key;
         if(value == "3.1415926535897932384"){
             this->type = ARR;
+            //setArrName(temp_key);
             //::inside_array = true;
             //cout << "creating array:  " << getKeyName() << endl;
         }
@@ -365,8 +375,58 @@ class JSON_val{
 
     //operator overloading for append
     JSON_val &operator^=(JSON_val value){
+        if(this->getType() == ARR){
+            value.arr_obj_cell =  true;
+            value.setKey(to_string(this->array.size()));
+            this->array.push_back(value);
+        } 
+        else{
+            string error = "Variable with name '" + this->getKey() + "' is not an array and, therefore, cannot be appended";
+            ::error_message(error);
+        }
 
     }
-
+    bool checkIfNumber(JSON_val value){
+        if(value.getType() == INTEGER || value.getType() == DOUBLE)
+            return true;
+        return false;
+    }
+    JSON_val &operator+(JSON_val value){
+        string temp = "";
+        JSON_val tmp = NULL;
+        if(this->getType() == value.getType()){
+            switch(this->getType()){
+                case INTEGER:
+                case DOUBLE:
+                    this->setNumValue(this->getNumValue() + value.getNumValue());
+                    break;
+                case STRING:
+                    temp = this->getStrValue(); 
+                    temp.append(value.getStrValue()); //just to be sure
+                    this->setStrValue(temp);
+                    break;
+                case ARR:
+                    tmp = value;
+                    for(int i = 0; i < tmp.array.size(); i++){
+                        tmp.array[i].setKey(to_string(this->array.size()));
+                        this->array.push_back(tmp[i]);
+                    }
+                    break;
+                case OBJ:
+                    for(int i = 0; i < value.object.size(); i++){
+                        value.object[i].setKey(to_string(this->object.size()));
+                        this->object.push_back(value);
+                    }
+                    break;
+                default:
+                    error_message("Operator '+' can not be used for JSON value with given type.");
+                    break;   
+            }
+        }
+        else{
+            error_message("JSON types mismatch between values given for '+' operator");
+        }
+        return *this;
+    }
 
 };
