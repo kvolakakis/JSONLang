@@ -89,7 +89,7 @@ PRINT hy352_ang
 JSON(Students) = ARRAY[
                     OBJECT {
                         KEY(name) : STRING("Angela ") + STRING("Martin"),
-                        KEY(id) : NUMBER(4444),
+                        KEY(id) : NUMBER(2) > NUMBER(4),
                         KEY(grades) : ARRAY[
                         OBJECT {
                             KEY(hy352):

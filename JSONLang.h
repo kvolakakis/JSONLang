@@ -502,11 +502,71 @@ class JSON_val{
 
     JSON_val &operator<(JSON_val value){
         bool result;
-        if(this->getType() == value.getType() && checkIfNumber(*this)){
-                result = this->getNumValue() < value.getNumValue();
+        if(this->getType() == value.getType()){
+                if(checkIfNumber(*this))
+                    result = this->getNumValue() < value.getNumValue();
+                else
+                    error_message("Operator '<' cannot be used between JSON values of these types");
         }
         else{
-            error_message("JSON types mismatch between values given for '%' operator");
+            error_message("JSON types mismatch between values given for '<' operator");
+        }
+        string old_key = this->getKey();
+        JSON_val dummy = NULL;
+        dummy | *this; //erasing previous *this JSON_val
+        *this = JSON_val((bool)result);
+        this->setKey(old_key);
+        return *this;
+    }
+
+    JSON_val &operator<=(JSON_val value){
+        bool result;
+        if(this->getType() == value.getType()){
+                if(checkIfNumber(*this))
+                    result = this->getNumValue() <= value.getNumValue();
+                else
+                    error_message("Operator '<=' cannot be used between JSON values of these types");
+        }
+        else{
+            error_message("JSON types mismatch between values given for '<=' operator");
+        }
+        string old_key = this->getKey();
+        JSON_val dummy = NULL;
+        dummy | *this; //erasing previous *this JSON_val
+        *this = JSON_val((bool)result);
+        this->setKey(old_key);
+        return *this;
+    }
+
+    JSON_val &operator>(JSON_val value){
+        bool result;
+        if(this->getType() == value.getType()){
+                if(checkIfNumber(*this))
+                    result = this->getNumValue() > value.getNumValue();
+                else
+                    error_message("Operator '>' cannot be used between JSON values of these types");
+        }
+        else{
+            error_message("JSON types mismatch between values given for '>' operator");
+        }
+        string old_key = this->getKey();
+        JSON_val dummy = NULL;
+        dummy | *this; //erasing previous *this JSON_val
+        *this = JSON_val((bool)result);
+        this->setKey(old_key);
+        return *this;
+    }
+
+    JSON_val &operator>=(JSON_val value){
+        bool result;
+        if(this->getType() == value.getType()){
+                if(checkIfNumber(*this))
+                    result = this->getNumValue() >= value.getNumValue();
+                else
+                    error_message("Operator '>=' cannot be used between JSON values of these types");
+        }
+        else{
+            error_message("JSON types mismatch between values given for '>=' operator");
         }
         string old_key = this->getKey();
         JSON_val dummy = NULL;
@@ -557,4 +617,4 @@ class JSON_val{
  * 5) FIX ARITHMETIC OPERATORS OVERLOADING SO THAT WE DONS STORE RESULT TO *this 
  *    BUT TO DIFFERENT VALUE WE WILL RETURN LATER. 
  * 
- * /
+ */
