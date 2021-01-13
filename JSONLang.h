@@ -188,11 +188,9 @@ class JSON_val{
     //-----NEEDS TO BE CHECKED..NOT SURE IF RIGHT-----//
     //basic methods regarding bool values (true/false)
     JSON_val(bool value){
-        cout << "inside boolean constructor for";// << endl;
         this->type = BOOLEAN;
         this->key = ::getKeyName();
         this->boolValue = value;
-        cout << this->key << endl;
     }
 
     double getBoolValue(){
@@ -211,6 +209,17 @@ class JSON_val{
         vector<JSON_val>::iterator obj_iterator;
         obj_iterator = this->object.begin();
         obj_iterator = this->object.insert(obj_iterator, list);
+        for(int i = 0; i < this->object.size(); i++){
+            string temp_key = this->object[i].getKey();
+            for(int j = 0; j < this->object.size(); j++){
+                if(i != j){
+                    if(this->object[j].getKey() == temp_key){
+                        string error = "Key '" + temp_key + "' already exists in object '" + this->getKey() +"'. Cannot assign it twice.";
+                        ::error_message(error);
+                    }
+                }
+            }
+        }
         this->type = OBJ;
     }
 
@@ -276,13 +285,18 @@ class JSON_val{
          
     }
 
-    //operator overloading for , operator (used to separate OBJECT, and  possibly ARRAY too, (key, value) pairs)
-    JSON_val &operator,(JSON_val *value){
-        this->object.push_back(value);
-        return *this;
+
+    bool checkIfKeyAvailable(JSON_val json, string key){
+        PRINT json;
+        for(int i = 0; i < json.getObject().size(); i++){
+            if(json.object[i].getKey() == key){
+                return false;
+            }
+        }
+        return true;
     }
 
-    //operators overloading not (yet) used
+    //operator overloading for , operator (used to separate ARRAY values)
     JSON_val &operator,(JSON_val value){
         //FIRST INSERTION GODDAMMIT
         if(this->array.size() == 0){ 
@@ -296,15 +310,10 @@ class JSON_val{
         this->array.push_back(value);
         return *this;
     }
-    //operator overloading for displaying array
-    /*JSON_val &operator[](JSON_val value){
-        cout << "in array making " << value.getType() << endl;
-        return value;
-    }*/
+
     JSON_val operator[](JSON_val value){
-        PRINT *this;
-        //FIRST INSERTION GODDAMMIT
-        if(this->array.size() == 0){ 
+        //SINGLE INSERTION IF ONLY ONE VALUE GODDAMMIT
+        if(value.array.size() == 0){ 
             value.array.push_back(value);
             value.array[0].setKey("0");
             value.array[0].arrayDisplay = true;
@@ -341,7 +350,7 @@ class JSON_val{
             ::error_message("Invalid type of json lvalue before []");
         }
 
-        return *this;
+        return *this; //hope we don't reach here :)
     };
 
     JSON_val &operator[](const char* key){
@@ -407,24 +416,30 @@ class JSON_val{
 
     JSON_val &operator+(JSON_val value){
         string temp = "";
-        JSON_val tmp = NULL;
+        JSON_val *tmp = NULL;
+        JSON_val *tmp_array = NULL;
+
         if(this->getType() == value.getType()){
             switch(this->getType()){
                 case INTEGER:
                 case DOUBLE:
-                    this->setNumValue(this->getNumValue() + value.getNumValue());
+                    tmp = new JSON_val((this->getNumValue() + value.getNumValue()), this->getKey());
                     break;
                 case STRING:
                     temp = this->getStrValue(); 
                     temp.append(value.getStrValue()); //just to be sure
-                    this->setStrValue(temp);
+                    tmp = new JSON_val(temp, this->getKey());
                     break;
-                case ARR:
-                    tmp = value;
-                    for(int i = 0; i < tmp.array.size(); i++){
-                        tmp.array[i].setKey(to_string(this->array.size()));
-                        this->array.push_back(tmp[i]);
+                case ARR:                    
+                    tmp_array = &value;
+                    for(int i = 0; i < this->array.size(); i++){
+                        tmp->array.push_back(this->array[i]);
                     }
+                    for(int i = 0; i < tmp_array->array.size(); i++){
+                        tmp_array->array[i].setKey(to_string(tmp->array.size()));
+                        tmp->array.push_back(tmp_array->array[i]);
+                    }
+                    
                     break;
                 case OBJ:
                     for(int i = 0; i < value.object.size(); i++){
@@ -440,40 +455,43 @@ class JSON_val{
         else{
             error_message("JSON types mismatch between values given for '+' operator");
         }
-        return *this;
+        return *tmp;
     }
 
     JSON_val &operator-(JSON_val value){
+        JSON_val *temp = NULL;
         if(this->getType() == value.getType()){
             if(checkIfNumber(*this)) //splitted those if just for error handling purposes
-                this->setNumValue(this->getNumValue() - value.getNumValue());
+                temp = new JSON_val(this->getNumValue() - value.getNumValue(),this->getKey());
             else
                 error_message("Operator '-' can not be used for JSON values with given types.");
         }
         else{
             error_message("JSON types mismatch between values given for '-' operator");
         }
-        return *this;
+        return *temp;
     }
 
     JSON_val &operator*(JSON_val value){
+        JSON_val *temp = NULL;
         if(this->getType() == value.getType()){
             if(checkIfNumber(*this)) //splitted those if just for error handling purposes
-                this->setNumValue(this->getNumValue() * value.getNumValue());
+                temp = new JSON_val(this->getNumValue() * value.getNumValue(), this->getKey());
             else
                 error_message("Operator '*' can not be used for JSON values with given types.");
         }
         else{
             error_message("JSON types mismatch between values given for '*' operator");
         }
-        return *this;
+        return *temp;
     }
 
     JSON_val &operator/(JSON_val value){
+        JSON_val *temp = NULL;
         if(this->getType() == value.getType()){
             if(checkIfNumber(*this)) //splitted those if just for error handling purposes
                 if(value.getNumValue()!=0)
-                    this->setNumValue(this->getNumValue() / value.getNumValue());
+                    temp = new JSON_val(this->getNumValue() / value.getNumValue(), this->getKey());
                 else
                     error_message("Cannot divide by 0 bro..lol.");
             else
@@ -482,14 +500,15 @@ class JSON_val{
         else{
             error_message("JSON types mismatch between values given for '/' operator");
         }
-        return *this;
+        return *temp;
     }
 
     JSON_val &operator%(JSON_val value){
+        JSON_val *temp = NULL;
         if(this->getType() == value.getType()){
             if(checkIfNumber(*this)) //splitted those if just for error handling purposes
                 if(value.getNumValue()!=0)
-                    this->setNumValue((double)((int)this->getNumValue() % (int)value.getNumValue()));//no modulo between doubles. Supposed you needed conversion to integers
+                    temp = new JSON_val((double)((int)this->getNumValue() * (int)value.getNumValue()), this->getKey());//no modulo between doubles. Supposed you needed conversion to integers
                 else
                     error_message("Cannot divide by 0 bro..lol.");
             else
@@ -498,11 +517,12 @@ class JSON_val{
         else{
             error_message("JSON types mismatch between values given for '%' operator");
         }
-        return *this;
+        return *temp;
     }
 
     JSON_val &operator<(JSON_val value){
         bool result;
+        JSON_val *temp = NULL;
         if(this->getType() == value.getType()){
                 if(checkIfNumber(*this))
                     result = this->getNumValue() < value.getNumValue();
@@ -513,15 +533,14 @@ class JSON_val{
             error_message("JSON types mismatch between values given for '<' operator");
         }
         string old_key = this->getKey();
-        JSON_val dummy = NULL;
-        dummy | *this; //erasing previous *this JSON_val
-        *this = JSON_val((bool)result);
-        this->setKey(old_key);
-        return *this;
+        temp = new JSON_val((bool)result);
+        temp->setKey(old_key);
+        return *temp;
     }
 
     JSON_val &operator<=(JSON_val value){
         bool result;
+        JSON_val *temp;
         if(this->getType() == value.getType()){
                 if(checkIfNumber(*this))
                     result = this->getNumValue() <= value.getNumValue();
@@ -532,15 +551,14 @@ class JSON_val{
             error_message("JSON types mismatch between values given for '<=' operator");
         }
         string old_key = this->getKey();
-        JSON_val dummy = NULL;
-        dummy | *this; //erasing previous *this JSON_val
-        *this = JSON_val((bool)result);
-        this->setKey(old_key);
-        return *this;
+        temp = new JSON_val((bool)result);
+        temp->setKey(old_key);
+        return *temp;
     }
 
     JSON_val &operator>(JSON_val value){
         bool result;
+        JSON_val *temp = NULL;
         if(this->getType() == value.getType()){
                 if(checkIfNumber(*this))
                     result = this->getNumValue() > value.getNumValue();
@@ -551,15 +569,14 @@ class JSON_val{
             error_message("JSON types mismatch between values given for '>' operator");
         }
         string old_key = this->getKey();
-        JSON_val dummy = NULL;
-        dummy | *this; //erasing previous *this JSON_val
-        *this = JSON_val((bool)result);
-        this->setKey(old_key);
-        return *this;
+        temp = new JSON_val((bool)result);
+        temp->setKey(old_key);
+        return *temp;
     }
 
     JSON_val &operator>=(JSON_val value){
         bool result;
+        JSON_val *temp;
         if(this->getType() == value.getType()){
                 if(checkIfNumber(*this))
                     result = this->getNumValue() >= value.getNumValue();
@@ -570,15 +587,14 @@ class JSON_val{
             error_message("JSON types mismatch between values given for '>=' operator");
         }
         string old_key = this->getKey();
-        JSON_val dummy = NULL;
-        dummy | *this; //erasing previous *this JSON_val
-        *this = JSON_val((bool)result);
-        this->setKey(old_key);
-        return *this;
+        temp = new JSON_val((bool)result);
+        temp->setKey(old_key);
+        return *temp;
     }
 
     JSON_val &operator==(JSON_val value){
         bool result = true;
+        JSON_val* temp = NULL;
         if(this->getType() == value.getType()){
                 switch(this->getType()){
                     case ARR:
@@ -624,15 +640,14 @@ class JSON_val{
             error_message("JSON types mismatch between values given for '>=' operator");
         }
         string old_key = this->getKey();
-        JSON_val dummy = NULL;
-        dummy | *this; //erasing previous *this JSON_val
-        *this = JSON_val((bool)result);
-        this->setKey(old_key);
-        return *this;
+        temp = new JSON_val((bool)result);
+        temp->setKey(old_key);
+        return *temp;
     }
     
     JSON_val &operator!=(JSON_val value){
         bool result = false;
+        JSON_val* temp = NULL;
         if(this->getType() == value.getType()){
                 switch(this->getType()){
                     case ARR:
@@ -678,48 +693,53 @@ class JSON_val{
             error_message("JSON types mismatch between values given for '>=' operator");
         }
         string old_key = this->getKey();
-        JSON_val dummy = NULL;
-        dummy | *this; //erasing previous *this JSON_val
-        *this = JSON_val((bool)result);
-        this->setKey(old_key);
-        return *this;
+        temp = new JSON_val((bool)result);
+        temp->setKey(old_key);
+        return *temp;
     }
 
     JSON_val &operator!(){
-        bool result;
+        JSON_val* temp = NULL;
         if(this->getType() == BOOLEAN){
-            this->setBoolValue(!this->getBoolValue());
+            temp = new JSON_val(!this->getBoolValue());
+            temp->setKey(this->getKey());
         }
         else{
             error_message("Operator '!' cannot be used between JSON values of these types");
         }
-        return *this;
+        return *temp;
     }
 
     JSON_val &operator&&(JSON_val value){
+        JSON_val* temp = NULL;
         if(this->getType() == value.getType()){
-                if(this->getType() == BOOLEAN)
-                    this->setBoolValue(this->getBoolValue() && value.getBoolValue());
+                if(this->getType() == BOOLEAN){
+                    temp = new JSON_val(this->getBoolValue() && value.getBoolValue());
+                    temp->setKey(this->getKey());
+                }
                 else
                     error_message("Operator '&&' cannot be used between JSON values of these types");
         }
         else{
             error_message("JSON types mismatch between values given for '&&' operator");
         }
-        return *this;
+        return *temp;
     }
 
     JSON_val &operator||(JSON_val value){
+        JSON_val* temp = NULL;
         if(this->getType() == value.getType()){
-                if(this->getType() == BOOLEAN)
-                    this->setBoolValue(this->getBoolValue() || value.getBoolValue());
+                if(this->getType() == BOOLEAN){
+                    temp = new JSON_val(this->getBoolValue() || value.getBoolValue());
+                    temp->setKey(this->getKey());
+                }
                 else
                     error_message("Operator '||' cannot be used between JSON values of these types");
         }
         else{
             error_message("JSON types mismatch between values given for '||' operator");
         }
-        return *this;
+        return *temp;
     }
 
     int size_of(JSON_val json){
@@ -757,11 +777,11 @@ class JSON_val{
 /* TODO
  * 
  * 1) FIX APPEND SO THAT WE CAN APPEND MORE THAN ONE VALUES AT ONCE
- * 2) FIX OPERATOR+ REGARDING ARRAY ANF OBJECT(LEAST LIKELY)
- * 3) IMLEMENT ALL LOGICAL AND COMPARISON OPERATORS (EAZZZZY)
+ * 2) FIX OPERATOR+ REGARDING ARRAY AND OBJECT(LEAST LIKELY)
+ * DONE --> 3) IMPLEMENT ALL LOGICAL AND COMPARISON OPERATORS (EAZZZZY)  
  * 4) FIX OPERATOR, SO THAT WE CAN PRINT MORE THAN ONE COMMA SEPARATED VALUES
- * 5) FIX ARITHMETIC OPERATORS OVERLOADING SO THAT WE DONS STORE RESULT TO *this 
- *    BUT TO DIFFERENT VALUE WE WILL RETURN LATER. 
- * 6) CHECK FOR MULTIPLE KEY DEFINITION IN OBJECT
+ * DONE --> 5) FIX ARITHMETIC OPERATORS OVERLOADING SO THAT WE DON'T STORE RESULT TO *this 
+ *              BUT TO DIFFERENT VALUE WE WILL RETURN LATER. 
+ * DONE --> 6) CHECK FOR MULTIPLE KEY DEFINITION IN OBJECT
  * 
  */
