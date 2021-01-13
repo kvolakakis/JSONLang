@@ -79,17 +79,15 @@ PRINT week_temperatures
 SET students[0]["grades"] APPEND OBJECT { KEY(hy255) : NUMBER(9) }
 PRINT students
 
-PRINT "\n\nArithmetic operators examples\n"
+PRINT "\n\nArithmetic and Comparison operators examples\n"
 
-PRINT STRING("hello") + STRING("world")
-//JSON(A) = ARRAY[ NUMBER(1), NUMBER(2)] + ARRAY[ NUMBER(3), NUMBER(4)] 
 JSON(hy352_ang) = OBJECT{ KEY(exam) : NUMBER(8), KEY(project) : NUMBER(9.2) }
 PRINT hy352_ang
 
 JSON(Students) = ARRAY[
                     OBJECT {
                         KEY(name) : STRING("Angela ") + STRING("Martin"),
-                        KEY(id) : NUMBER(2) > NUMBER(4),
+                        KEY(id) : NUMBER(4444) != NUMBER(4444),
                         KEY(grades) : ARRAY[
                         OBJECT {
                             KEY(hy352):
@@ -99,7 +97,70 @@ JSON(Students) = ARRAY[
                     }
                 ]
 
-PRINT Students, hy352_ang;
-PRINT "~.~.~.~.~.~.~.~ PROGRAM OUTPUT ~.~.~.~.~.~.~.~"
+PRINT Students;
+
+JSON(operators) = OBJECT{
+                        KEY(operator+) : OBJECT{
+                                            KEY(numbers: 2 + 3.14) : NUMBER(2) + NUMBER(3.14),
+                                            KEY(strings: '2' + '3.14') : STRING("2") + STRING("3.14")//,
+                                            //KEY(arrays: [2, 3.14] + [3, 2.72]) : ARRAY[NUMBER(2), NUMBER(3.14)] + ARRAY[NUMBER(3), NUMBER(2.72)]
+                                            //KEY(objects: {'k1' : 3 } + {'k2' : "hellozz"}) : OBJECT{KEY(k1) :NUMBER(3) } + OBJECT{ KEY(k2) : STRING("hellozz")}
+                        },
+                        KEY(operator-) : OBJECT{
+                                            KEY(numbers: 2 - 3.14) : NUMBER(2) - NUMBER(3.14)
+                        },
+                        KEY(operator*) : OBJECT{
+                                            KEY(numbers: 2 * 3.14) : NUMBER(2) * NUMBER(3.14)
+                        },
+                        KEY(operator/) : OBJECT{
+                                            KEY(numbers: 2 / 3.14) : NUMBER(2) / NUMBER(3.14)
+                        },
+                        KEY(operator%) : OBJECT{
+                                            KEY(numbers: 2 % 3.14 (double converted to integer)) : NUMBER(2) % NUMBER(3.14),
+                                            KEY(numbers: 996 % 100 (grade expected to this project<3)) : NUMBER(996) % NUMBER(100)
+                        },
+                        KEY(operator<) : OBJECT{
+                                            KEY(numbers: 2 < 3.14) : NUMBER(2) < NUMBER(3.14),
+                                            KEY(numbers: 3.14 < 2) : NUMBER(3.14) < NUMBER(2)
+                        },
+                        KEY(operator>) : OBJECT{
+                                            KEY(numbers: 2 > 3.14) : NUMBER(2) > NUMBER(3.14),
+                                            KEY(numbers: 3.14 > 2) : NUMBER(3.14) > NUMBER(2)
+                        },
+                        KEY(operator<=) : OBJECT{
+                                            KEY(numbers: 2 <= 3.14) : NUMBER(2) <= NUMBER(3.14),
+                                            KEY(numbers: 3.14 <= 2) : NUMBER(3.14) <= NUMBER(2),
+                                            KEY(numbers: 3.14 <= 3.14) : NUMBER(3.14) <= NUMBER(3.14)
+                        },
+                        KEY(operator>=) : OBJECT{
+                                            KEY(numbers: 2 >= 3.14) : NUMBER(2) >= NUMBER(3.14),
+                                            KEY(numbers: 3.14 >= 2) : NUMBER(3.14) >= NUMBER(2),
+                                            KEY(numbers: 3.14 >= 3.14) : NUMBER(3.14) >= NUMBER(3.14)
+                        },
+                        KEY(operator==) : OBJECT{
+                                            KEY(numbers: 2 == 3.14) : NUMBER(2) == NUMBER(3.14),
+                                            KEY(numbers: 3.14 == 3.14) : NUMBER(3.14) == NUMBER(3.14),
+                                            KEY(strings: 'ok' == 'ko') : STRING("ok") == STRING("ko"),
+                                            KEY(strings: 'ok' == 'ok') : STRING("ok") == STRING("ok"),
+                                            KEY(booleans: true == true) : TRUE == TRUE,
+                                            KEY(booleans: true == false) : TRUE == FALSE,
+                                            //KEY(arrays: [2, 3.14] == [3, 2.72]) : ARRAY[NUMBER(2), NUMBER(3.14)] == ARRAY[NUMBER(3), NUMBER(2.72)],
+                                            //KEY(objects: {'k1' : 3 } == {'k2' : "hellozz"}) : OBJECT{KEY(k1) :NUMBER(3) } == OBJECT{ KEY(k2) : STRING("hellozz")}
+                        },
+                        KEY(operator!=) : OBJECT{
+                                            KEY(numbers: 2 != 3.14) : NUMBER(2) != NUMBER(3.14),
+                                            KEY(numbers: 3.14 != 3.14) : NUMBER(3.14) != NUMBER(3.14),
+                                            KEY(strings: 'ok' != 'ko') : STRING("ok") != STRING("ko"),
+                                            KEY(strings: 'ok' == 'ok') : STRING("ok") != STRING("ok"),
+                                            KEY(booleans: true != true) : TRUE != TRUE,
+                                            KEY(booleans: true != false) : TRUE != FALSE,
+                                            //KEY(arrays: [2, 3.14] != [3, 2.72]) : ARRAY[NUMBER(2), NUMBER(3.14)] != ARRAY[NUMBER(3), NUMBER(2.72)],
+                                            //KEY(objects: {'k1' : 3 } != {'k2' : "hellozz"}) : OBJECT{KEY(k1) :NUMBER(3) } != OBJECT{ KEY(k2) : STRING("hellozz")}
+                        }
+}
+
+
+PRINT operators
+PRINT "~.~.~.~.~.~.~.~ THAT'S ALL FOLKS! ~.~.~.~.~.~.~.~"
 
 PROGRAM_END

@@ -576,6 +576,114 @@ class JSON_val{
         return *this;
     }
 
+    JSON_val &operator==(JSON_val value){
+        bool result = true;
+        if(this->getType() == value.getType()){
+                switch(this->getType()){
+                    case ARR:
+                        if(this->getArray().size() != value.getArray().size()){
+                            result = false;
+                            break;
+                        }
+                        for(int i = 0; i < this->getArray().size(); i++){
+                            if(!(this->array[i] == value.array[i]).boolValue){ //lol...at this moment mental breakdown almost hit
+                                result = false;
+                                break;
+                            }
+                        }
+                        break;
+                    case OBJ:
+                        if(this->getObject().size() != value.getObject().size()){
+                            result = false;
+                            break;
+                        }
+                        for(int i = 0; i < this->getObject().size(); i++){
+                            if(!(this->object[i] == value.object[i]).boolValue){ //lol...at this moment mental breakdown almost hit
+                                result = false;
+                                break;
+                            }
+                        }
+                        break;
+                    case INTEGER:
+                    case DOUBLE:
+                        result = this->getNumValue() == value.getNumValue();
+                        break;
+                    case BOOLEAN:
+                        result = this->getBoolValue() == value.getBoolValue();
+                        break;
+                    case STRING:
+                        result = this->getStrValue() == value.getStrValue();
+                        break;
+                    default:
+                        error_message("Type of JSON value given not recognized");
+                        break;
+                }
+        }
+        else{
+            error_message("JSON types mismatch between values given for '>=' operator");
+        }
+        string old_key = this->getKey();
+        JSON_val dummy = NULL;
+        dummy | *this; //erasing previous *this JSON_val
+        *this = JSON_val((bool)result);
+        this->setKey(old_key);
+        return *this;
+    }
+    
+    JSON_val &operator!=(JSON_val value){
+        bool result = false;
+        if(this->getType() == value.getType()){
+                switch(this->getType()){
+                    case ARR:
+                        if(this->getArray().size() != value.getArray().size()){
+                            result = true;
+                            break;
+                        }
+                        for(int i = 0; i < this->getArray().size(); i++){
+                            if((this->array[i] == value.array[i]).boolValue){ //lol...at this moment mental breakdown almost hit
+                                result = true;
+                                break;
+                            }
+                        }
+                        break;
+                    case OBJ:
+                        if(this->getObject().size() != value.getObject().size()){
+                            result = false;
+                            break;
+                        }
+                        for(int i = 0; i < this->getObject().size(); i++){
+                            if(!(this->object[i] == value.object[i]).boolValue){ //lol...at this moment mental breakdown almost hit
+                                result = true;
+                                break;
+                            }
+                        }
+                        break;
+                    case INTEGER:
+                    case DOUBLE:
+                        result = this->getNumValue() != value.getNumValue();
+                        break;
+                    case BOOLEAN:
+                        result = this->getBoolValue() != value.getBoolValue();
+                        break;
+                    case STRING:
+                        result = this->getStrValue() != value.getStrValue();
+                        break;
+                    default:
+                        error_message("Type of JSON value given not recognized");
+                        break;
+                }
+        }
+        else{
+            error_message("JSON types mismatch between values given for '>=' operator");
+        }
+        string old_key = this->getKey();
+        JSON_val dummy = NULL;
+        dummy | *this; //erasing previous *this JSON_val
+        *this = JSON_val((bool)result);
+        this->setKey(old_key);
+        return *this;
+    }
+
     int size_of(JSON_val json){
         if(json.getType()  == ARR)
             return json.getArray().size();
@@ -616,5 +724,6 @@ class JSON_val{
  * 4) FIX OPERATOR, SO THAT WE CAN PRINT MORE THAN ONE COMMA SEPARATED VALUES
  * 5) FIX ARITHMETIC OPERATORS OVERLOADING SO THAT WE DONS STORE RESULT TO *this 
  *    BUT TO DIFFERENT VALUE WE WILL RETURN LATER. 
+ * 6) CHECK FOR MULTIPLE KEY DEFINITION IN OBJECT
  * 
  */
