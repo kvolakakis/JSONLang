@@ -26,8 +26,11 @@
 #define ASSIGN |=
 #define ERASE ; dummy |
 #define APPEND ^= 
-
-
+#define SIZE_OF(json) size_of(JSON_val json);
+#define IS_EMPTY(json) is_empty(JSON_val json);
+#define HAS_KEY(json) has_key(JSON_val json);
+#define TYPE_OF(json) type_of(JSON_val json);
+ 
 using namespace std;
 int tabs = 0;
 vector<string> objNames;
@@ -512,4 +515,46 @@ class JSON_val{
         this->setKey(old_key);
         return *this;
     }
+
+    int size_of(JSON_val json){
+        if(json.getType()  == ARR)
+            return json.getArray().size();
+        else if(json.getType()  == OBJ)
+            return json.getObject().size();
+        return 1;
+    }
+
+    string type_of(JSON_val json){
+        return types[json.getType()];
+    }
+
+    bool is_empty_me(JSON_val json){
+        if(json.getType()  == ARR)
+            return (json.getArray().size() ==  0); 
+        else if(json.getType()  == OBJ)
+            return (json.getObject().size() ==0);
+        return false;
+    }
+
+    bool has_key(JSON_val json, string key){
+        if(json.getType()  == OBJ){
+            for(int i = 0; i < json.getObject().size(); i++){
+                if(json.object[i].getKey() == key)
+                    return true;
+            }
+        }
+        return false;
+    }
 };
+
+
+/* TODO
+ * 
+ * 1) FIX APPEND SO THAT WE CAN APPEND MORE THAN ONE VALUES AT ONCE
+ * 2) FIX OPERATOR+ REGARDING ARRAY ANF OBJECT(LEAST LIKELY)
+ * 3) IMLEMENT ALL LOGICAL AND COMPARISON OPERATORS (EAZZZZY)
+ * 4) FIX OPERATOR, SO THAT WE CAN PRINT MORE THAN ONE COMMA SEPARATED VALUES
+ * 5) FIX ARITHMETIC OPERATORS OVERLOADING SO THAT WE DONS STORE RESULT TO *this 
+ *    BUT TO DIFFERENT VALUE WE WILL RETURN LATER. 
+ * 
+ * /

@@ -99,7 +99,7 @@ JSON(Students) = ARRAY[
                     }
                 ]
 
-PRINT Students;
+PRINT Students, hy352_ang;
 PRINT "~.~.~.~.~.~.~.~ PROGRAM OUTPUT ~.~.~.~.~.~.~.~"
 
 PROGRAM_END
