@@ -15,6 +15,8 @@
 #define FALSE JSON_val((bool)false)
 #define OBJECT  (((setObjName(temp_key))) && false) ? true :  *new JSON_val
 #define ARRAY (((setArrName(temp_key))) && false) ? true : JSON_val("3.1415926535897932384", temp_key)
+#define NUL JSON_val(temp_key)
+
 /*
  * # is used to stringify value
  * trickiest so far (commit 3)
@@ -101,6 +103,7 @@ void error_message(string mess){
 class JSON_val{
     private:
         JSON_Type type;
+        int nullVal = 0;
         string strValue;
         double numValue;
         bool boolValue;
@@ -129,6 +132,11 @@ class JSON_val{
 
     void setKey(string key){
         this->key = key;
+    }
+    //
+    JSON_val(string key){
+        this->key = key;
+        this->type = NIL;
     }
 
     //basic methods regarding strings
@@ -201,9 +209,8 @@ class JSON_val{
     void setBoolValue(bool newValue){
         this->boolValue = newValue;
     }
-    //-----END NEEDS TO BE CHECKED-----//
 
-    //OBJECT { } constructor. 
+    //OBJECT { } constructor. *google is a friend of ours*
     JSON_val(initializer_list<JSON_val> list){
         this->key = getObjName();
         vector<JSON_val>::iterator obj_iterator;
@@ -235,6 +242,9 @@ class JSON_val{
             if(!json.arrayDisplay && !json.arr_obj_cell) 
                 cout << "\"" << json.getKey() <<"\" : ";
             switch(json.getType()){
+                case NIL:
+                    cout << "null";// << endl;
+                    break;
                 case STRING:
                     cout << "\"" << json.getStrValue() << "\"";// << endl;
                     break;

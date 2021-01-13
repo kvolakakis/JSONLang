@@ -6,7 +6,8 @@ PRINT "\n\n>>>>>>>>>> Basic initializations examples\n"
 //define emptyObj json with empty object
 JSON(emptyObj) = OBJECT {}
 PRINT emptyObj
-
+JSON(NULL_TEST) = OBJECT{KEY(TEST):NUL}
+PRINT NULL_TEST
 //define emptyArray json with empty array
 JSON(emptyArray) = ARRAY
 PRINT emptyArray
@@ -171,7 +172,8 @@ JSON(operators) = OBJECT{
                         }
 }
 PRINT operators
- 
+
+
 PRINT "~.~.~.~.~.~.~.~ THAT'S ALL FOLKS! ~.~.~.~.~.~.~.~"
 
 PROGRAM_END
