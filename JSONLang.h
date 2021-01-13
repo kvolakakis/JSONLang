@@ -198,8 +198,9 @@ class JSON_val{
     double getBoolValue(){
         return this->boolValue;
     }
+    
 
-    void setNumValue(bool newValue){
+    void setBoolValue(bool newValue){
         this->boolValue = newValue;
     }
     //-----END NEEDS TO BE CHECKED-----//
@@ -681,6 +682,43 @@ class JSON_val{
         dummy | *this; //erasing previous *this JSON_val
         *this = JSON_val((bool)result);
         this->setKey(old_key);
+        return *this;
+    }
+
+    JSON_val &operator!(){
+        bool result;
+        if(this->getType() == BOOLEAN){
+            this->setBoolValue(!this->getBoolValue());
+        }
+        else{
+            error_message("Operator '!' cannot be used between JSON values of these types");
+        }
+        return *this;
+    }
+
+    JSON_val &operator&&(JSON_val value){
+        if(this->getType() == value.getType()){
+                if(this->getType() == BOOLEAN)
+                    this->setBoolValue(this->getBoolValue() && value.getBoolValue());
+                else
+                    error_message("Operator '&&' cannot be used between JSON values of these types");
+        }
+        else{
+            error_message("JSON types mismatch between values given for '&&' operator");
+        }
+        return *this;
+    }
+
+    JSON_val &operator||(JSON_val value){
+        if(this->getType() == value.getType()){
+                if(this->getType() == BOOLEAN)
+                    this->setBoolValue(this->getBoolValue() || value.getBoolValue());
+                else
+                    error_message("Operator '||' cannot be used between JSON values of these types");
+        }
+        else{
+            error_message("JSON types mismatch between values given for '||' operator");
+        }
         return *this;
     }
 

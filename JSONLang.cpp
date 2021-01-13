@@ -156,6 +156,19 @@ JSON(operators) = OBJECT{
                                             KEY(booleans: true != false) : TRUE != FALSE,
                                             //KEY(arrays: [2, 3.14] != [3, 2.72]) : ARRAY[NUMBER(2), NUMBER(3.14)] != ARRAY[NUMBER(3), NUMBER(2.72)],
                                             //KEY(objects: {'k1' : 3 } != {'k2' : "hellozz"}) : OBJECT{KEY(k1) :NUMBER(3) } != OBJECT{ KEY(k2) : STRING("hellozz")}
+                        },
+                        KEY(operator!) : OBJECT{
+                                            KEY(!TRUE) : !TRUE,
+                                            KEY(!FALSE) : !FALSE
+                        },
+                        KEY(operator&&) : OBJECT{
+                                            KEY(TRUE && FALSE) : TRUE && FALSE,
+                                            KEY(TRUE && TRUE) : TRUE && TRUE
+                        },
+                        KEY(operator||) : OBJECT{
+                                            KEY(TRUE || FALSE) : TRUE || FALSE,
+                                            KEY(TRUE || TRUE) : TRUE || TRUE,
+                                            KEY(FALSE || FALSE) : FALSE || FALSE
                         }
 }
 
