@@ -1,7 +1,7 @@
 compile:
 	g++ JSONLang.cpp -o json
 
-exec:
+execute:
 	./json
 
 all:

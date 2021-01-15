@@ -5,33 +5,33 @@
 #include <stdarg.h> 
 #include <fstream>
 #include <typeinfo>
-#define PROGRAM_BEGIN int main(){ string tmp; JSON_val dummy = NULL; 
+#define PROGRAM_BEGIN int main(){ string tmp; JSON_val dummy = (JSON_val)0; 
 #define PROGRAM_END  ; return 0;} 
 #define PRINT ; if(print_newline) cout << endl; print_newline = true; for(int j = 0; j<tabs; j++) cout << "  "; cout <<
 #define JSON(temp) ;  setKeyName(#temp); JSON_val temp  
-#define STRING(value) JSON_val((string)value, temp_key) 
-#define NUMBER(value) JSON_val((double)value, temp_key)
-#define TRUE JSON_val((bool)true)
-#define FALSE JSON_val((bool)false)
+#define STRING(value) *new JSON_val((string)value, temp_key) 
+#define NUMBER(value) *new JSON_val((double)value, temp_key)
+#define TRUE *new JSON_val((bool)true)
+#define FALSE  *new  JSON_val((bool)false)
 #define OBJECT  (((setObjName(temp_key))) && false) ? true :  *new JSON_val
 #define ARRAY (((setArrName(temp_key))) && false) ? true : JSON_val("3.1415926535897932384", temp_key)
-#define NUL JSON_val(temp_key)
+#define NULL *new JSON_val(temp_key)
 
 /*
  * # is used to stringify value
  * trickiest so far (commit 3)
  * assign true value to expression so that using expr1 ? expr2 : expr3 leads to calling both expr1 and expr3
- * Edit: not even close to the trickiest
+ * Edit(commit 30+): not even close to the trickiest
  */ 
 #define KEY(value) ((setKeyName(#value)) && false) ? true
 #define SET ;
 #define ASSIGN |=
 #define ERASE ; dummy |
 #define APPEND ^= 
-#define SIZE_OF(json) size_of(JSON_val json);
-#define IS_EMPTY(json) is_empty(JSON_val json);
-#define HAS_KEY(json) has_key(JSON_val json);
-#define TYPE_OF(json) type_of(JSON_val json);
+#define SIZE_OF(json) json.size_of(json);
+#define IS_EMPTY(json) json.is_empty(json);
+#define HAS_KEY(json, key) json.has_key(json, key);
+#define TYPE_OF(json) json.type_of(json);
  
 using namespace std;
 int tabs = 0;
@@ -98,8 +98,6 @@ void error_message(string mess){
 }
 //END helper functions to preserve object pairs' keys
 
-//TODO: check if it's possible to keep different types of values using templates
-//TODO: maybe use map to keep (key, value) pairs
 class JSON_val{
     private:
         JSON_Type type;
@@ -110,8 +108,7 @@ class JSON_val{
         string key;
         vector<JSON_val> object;
         vector<JSON_val> array;
-        bool arr_obj_cell  = false;
-        bool arrayDisplay = false;
+        bool arrayDisplay  = true;
         int scope;
         bool visible = true;
     public:
@@ -148,9 +145,7 @@ class JSON_val{
         this->key = key;
         if(value == "3.1415926535897932384"){
             this->type = ARR;
-            //setArrName(temp_key);
-            //::inside_array = true;
-            //cout << "creating array:  " << getKeyName() << endl;
+            //this->arrayDisplay = false; 
         }
         else
         {
@@ -213,10 +208,12 @@ class JSON_val{
     //OBJECT { } constructor. *google is a friend of ours*
     JSON_val(initializer_list<JSON_val> list){
         this->key = getObjName();
-        vector<JSON_val>::iterator obj_iterator;
-        obj_iterator = this->object.begin();
-        obj_iterator = this->object.insert(obj_iterator, list);
+        //this->arrayDisplay = false;
+        vector<JSON_val>::iterator it;
+        it = this->object.begin();
+        it = this->object.insert(it, list);
         for(int i = 0; i < this->object.size(); i++){
+            this->object[i].arrayDisplay = false;
             string temp_key = this->object[i].getKey();
             for(int j = 0; j < this->object.size(); j++){
                 if(i != j){
@@ -236,10 +233,11 @@ class JSON_val{
     vector<JSON_val> getArray(){
         return this->array;
     }
+
     //operator overloading for << operator (used for cout << ..;)
     friend ostream &operator<<(ostream  &os, JSON_val &json){
         if(json.visible){
-            if(!json.arrayDisplay && !json.arr_obj_cell) 
+            if(!json.arrayDisplay && !json.arrayDisplay) 
                 cout << "\"" << json.getKey() <<"\" : ";
             switch(json.getType()){
                 case NIL:
@@ -261,11 +259,8 @@ class JSON_val{
                 case OBJ:
                     tabs+=2;
                     cout << "{";
-                    //cout << "size: " << json.getObject().size() << endl;
                     for(int i = 0; i < json.getObject().size(); i++){
                         if(!json.getObject()[i].visible) ::print_newline = false;
-                        //for(int j = 0; j<tabs; j++) cout << "  ";
-                        //cout << i <<"-> type: " << json.getObject()[i].getType() << ": ";
                         PRINT json.getObject()[i];
                         if(i != json.getObject().size() - 1 && json.getObject()[i].visible) cout << ", "<< endl;
                     }
@@ -279,7 +274,6 @@ class JSON_val{
                     cout << "[";
                     for(int i = 0; i<json.getArray().size();  i++){
                         if(!json.getArray()[i].visible) ::print_newline = false;
-                        //for(int j = 0; j<tabs; j++) cout << "  ";
                         PRINT json.getArray()[i];
                         if(i != json.getArray().size()-1 && json.getArray()[i].visible) cout << ", " << endl;
                     }
@@ -290,7 +284,7 @@ class JSON_val{
                     break;
             }
             //used to print a cell of an array or an object (without key)
-            if(json.arr_obj_cell) json.arr_obj_cell = !json.arr_obj_cell;
+            //if(json.arrayDisplay) json.arrayDisplay = !json.arrayDisplay;
         }
          
     }
@@ -329,6 +323,7 @@ class JSON_val{
             value.array[0].arrayDisplay = true;
             value.setType(ARR);
         }
+        //value.arrayDisplay = false;
         value.setKey(getArrName());
         return value;
     };
@@ -336,7 +331,7 @@ class JSON_val{
     JSON_val &operator[](int index){
         if(this->getType() == ARR){
             if(index < this->array.size()){
-                this->array[index].arr_obj_cell = true;
+                this->array[index].arrayDisplay = true;
                 return this->array[index];
             }
             else{
@@ -347,7 +342,7 @@ class JSON_val{
         else if(this->getType() == OBJ){
             for(int i = 0; i < this->getObject().size(); i++){
                 if(this->getObject()[i].getKey() == to_string(index)){
-                    this->object[i].arr_obj_cell = true;
+                    this->object[i].arrayDisplay = true;
                     return this->object[i];
                 }
             }
@@ -367,12 +362,13 @@ class JSON_val{
         if(this->getType() == OBJ){
             for(int i = 0; i < this->getObject().size(); i++){
                 if(this->getObject()[i].getKey() == key){
-                    this->object[i].arr_obj_cell = true;
+                    this->object[i].arrayDisplay = true;
                     return this->object[i];
                 }
             }
             //if we reach here it means we dont have a pair with "key" as a key. So we make a new one;
             JSON_val *temp = new JSON_val((string)"new value", key);
+            temp->arrayDisplay = false;
             this->object.push_back(*temp);
             return this->object[this->object.size() - 1];
             
@@ -408,7 +404,7 @@ class JSON_val{
     //operator overloading for append
     JSON_val &operator^=(JSON_val value){
         if(this->getType() == ARR){
-            value.arr_obj_cell =  true;
+            value.arrayDisplay =  true;
             value.setKey(to_string(this->array.size()));
             this->array.push_back(value);
         } 
@@ -426,8 +422,8 @@ class JSON_val{
 
     JSON_val &operator+(JSON_val value){
         string temp = "";
-        JSON_val *tmp = NULL;
-        JSON_val *tmp_array = NULL;
+        JSON_val *tmp;
+        JSON_val *tmp_array;
 
         if(this->getType() == value.getType()){
             switch(this->getType()){
@@ -469,7 +465,7 @@ class JSON_val{
     }
 
     JSON_val &operator-(JSON_val value){
-        JSON_val *temp = NULL;
+        JSON_val *temp;
         if(this->getType() == value.getType()){
             if(checkIfNumber(*this)) //splitted those if just for error handling purposes
                 temp = new JSON_val(this->getNumValue() - value.getNumValue(),this->getKey());
@@ -483,7 +479,7 @@ class JSON_val{
     }
 
     JSON_val &operator*(JSON_val value){
-        JSON_val *temp = NULL;
+        JSON_val *temp;
         if(this->getType() == value.getType()){
             if(checkIfNumber(*this)) //splitted those if just for error handling purposes
                 temp = new JSON_val(this->getNumValue() * value.getNumValue(), this->getKey());
@@ -497,7 +493,7 @@ class JSON_val{
     }
 
     JSON_val &operator/(JSON_val value){
-        JSON_val *temp = NULL;
+        JSON_val *temp;
         if(this->getType() == value.getType()){
             if(checkIfNumber(*this)) //splitted those if just for error handling purposes
                 if(value.getNumValue()!=0)
@@ -514,11 +510,11 @@ class JSON_val{
     }
 
     JSON_val &operator%(JSON_val value){
-        JSON_val *temp = NULL;
+        JSON_val *temp;
         if(this->getType() == value.getType()){
             if(checkIfNumber(*this)) //splitted those if just for error handling purposes
                 if(value.getNumValue()!=0)
-                    temp = new JSON_val((double)((int)this->getNumValue() * (int)value.getNumValue()), this->getKey());//no modulo between doubles. Supposed you needed conversion to integers
+                    temp = new JSON_val((double)((int)this->getNumValue() % (int)value.getNumValue()), this->getKey());//no modulo between doubles. Supposed you needed conversion to integers
                 else
                     error_message("Cannot divide by 0 bro..lol.");
             else
@@ -532,7 +528,7 @@ class JSON_val{
 
     JSON_val &operator<(JSON_val value){
         bool result;
-        JSON_val *temp = NULL;
+        JSON_val *temp;
         if(this->getType() == value.getType()){
                 if(checkIfNumber(*this))
                     result = this->getNumValue() < value.getNumValue();
@@ -568,7 +564,7 @@ class JSON_val{
 
     JSON_val &operator>(JSON_val value){
         bool result;
-        JSON_val *temp = NULL;
+        JSON_val *temp;
         if(this->getType() == value.getType()){
                 if(checkIfNumber(*this))
                     result = this->getNumValue() > value.getNumValue();
@@ -604,7 +600,7 @@ class JSON_val{
 
     JSON_val &operator==(JSON_val value){
         bool result = true;
-        JSON_val* temp = NULL;
+        JSON_val* temp;
         if(this->getType() == value.getType()){
                 switch(this->getType()){
                     case ARR:
@@ -657,7 +653,7 @@ class JSON_val{
     
     JSON_val &operator!=(JSON_val value){
         bool result = false;
-        JSON_val* temp = NULL;
+        JSON_val* temp;
         if(this->getType() == value.getType()){
                 switch(this->getType()){
                     case ARR:
@@ -709,7 +705,7 @@ class JSON_val{
     }
 
     JSON_val &operator!(){
-        JSON_val* temp = NULL;
+        JSON_val* temp;
         if(this->getType() == BOOLEAN){
             temp = new JSON_val(!this->getBoolValue());
             temp->setKey(this->getKey());
@@ -721,7 +717,7 @@ class JSON_val{
     }
 
     JSON_val &operator&&(JSON_val value){
-        JSON_val* temp = NULL;
+        JSON_val* temp;
         if(this->getType() == value.getType()){
                 if(this->getType() == BOOLEAN){
                     temp = new JSON_val(this->getBoolValue() && value.getBoolValue());
@@ -737,7 +733,7 @@ class JSON_val{
     }
 
     JSON_val &operator||(JSON_val value){
-        JSON_val* temp = NULL;
+        JSON_val* temp;
         if(this->getType() == value.getType()){
                 if(this->getType() == BOOLEAN){
                     temp = new JSON_val(this->getBoolValue() || value.getBoolValue());
@@ -751,7 +747,8 @@ class JSON_val{
         }
         return *temp;
     }
-
+    /*
+    //initial approach but we changed in order to be in accordance with mailing list clarification
     int size_of(JSON_val json){
         if(json.getType()  == ARR)
             return json.getArray().size();
@@ -763,8 +760,9 @@ class JSON_val{
     string type_of(JSON_val json){
         return types[json.getType()];
     }
+    //initial approach but we changed in order to be in accordance with PRINT needed from project description.
+    bool is_empty(JSON_val json){
 
-    bool is_empty_me(JSON_val json){
         if(json.getType()  == ARR)
             return (json.getArray().size() ==  0); 
         else if(json.getType()  == OBJ)
@@ -780,6 +778,48 @@ class JSON_val{
             }
         }
         return false;
+    }*/
+    JSON_val &size_of(JSON_val json){
+        int size = 1;
+        if(json.getType()  == ARR)
+            size = json.getArray().size();
+        else if(json.getType()  == OBJ)
+            size = json.getObject().size();
+        JSON_val* temp = new JSON_val(size, "NaN");
+        return *temp;
+    }
+
+    JSON_val &type_of(JSON_val json){
+        JSON_val* temp = new JSON_val(types[json.getType()], "NaN");
+        temp->arrayDisplay = true;
+        return *temp;
+    }
+
+    JSON_val &is_empty(JSON_val json){
+        bool result = false;
+        if(json.getType()  == ARR)
+            result = (json.getArray().size() ==  0); 
+        else if(json.getType()  == OBJ)
+            result = (json.getObject().size() ==0);
+        JSON_val* temp = new JSON_val(result);
+        temp->arrayDisplay = true;
+        temp->setKey("NaN");
+        return *temp;
+    }
+
+    JSON_val &has_key(JSON_val json, string key){
+        bool result = false;
+        if(json.getType()  == OBJ){
+            for(int i = 0; i < json.getObject().size(); i++){
+                if(json.object[i].getKey() == key){
+                    result = true;
+                }
+            }
+        }
+        JSON_val* temp = new JSON_val(result);
+        temp->arrayDisplay = true;
+        temp->setKey("NaN");
+        return *temp;
     }
 };
 
@@ -792,6 +832,6 @@ class JSON_val{
  * 4) FIX OPERATOR, SO THAT WE CAN PRINT MORE THAN ONE COMMA SEPARATED VALUES
  * DONE --> 5) FIX ARITHMETIC OPERATORS OVERLOADING SO THAT WE DON'T STORE RESULT TO *this 
  *              BUT TO DIFFERENT VALUE WE WILL RETURN LATER. 
- * DONE --> 6) CHECK FOR MULTIPLE KEY DEFINITION IN OBJECT
+ * DONE --> 6) CHECK FOR, AND HANDLE, MULTIPLE KEY DEFINITION IN OBJECT
  * 
  */

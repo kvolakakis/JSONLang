@@ -1,17 +1,29 @@
 #include "JSONLang.h"
 
 PROGRAM_BEGIN
-
+PRINT "~.~.~.~.~.~.~.~ Program execution starts here ~.~.~.~.~.~.~.~"
 PRINT "\n\n>>>>>>>>>> Basic initializations examples\n"
+//printing an example of each value type except for arrays and objects :)
+PRINT "printing string"
+PRINT STRING("hello guyz!")
+PRINT "printing number"
+PRINT NUMBER(100.001)
+PRINT "printing true"
+PRINT TRUE
+PRINT "printing false"
+PRINT FALSE
+PRINT "printing null"
+PRINT NULL
+PRINT endl << endl << "now real stuff starts:" << endl;
 //define emptyObj json with empty object
 JSON(emptyObj) = OBJECT {}
 PRINT emptyObj
-JSON(NULL_TEST) = OBJECT{KEY(TEST):NUL}
-PRINT NULL_TEST
 //define emptyArray json with empty array
 JSON(emptyArray) = ARRAY
 PRINT emptyArray
-
+//testing NULL inside a  json.. doesn't seem to happen next.
+JSON(NULL_TEST) = OBJECT{KEY(TEST):NULL}
+PRINT NULL_TEST
 //define book json with an object containing data for a book
 JSON(book) = OBJECT {
                 KEY(title) : STRING("Gone Girl"),
@@ -23,8 +35,12 @@ JSON(book) = OBJECT {
                                     KEY(age) : NUMBER(45)
                 }
 }
-PRINT book
-
+PRINT book["title"] //prints:Gone Girl
+PRINT book["author"] //prints:{firstname:?Gillian?,surname:?Flynn?,age:45}
+PRINT book //prints: the whole json for book
+//prints: Book has key author? True (but in reverse because we had some problems with this kind of print :))
+PRINT STRING("Book has key author?")
+PRINT HAS_KEY(book, "author")
 //define week_temperatures json with an array of numbers
 JSON(week_temperatures) = ARRAY[ NUMBER(20), NUMBER(19.5), NUMBER(19), NUMBER(20),
                                  NUMBER(19), NUMBER(18.5), NUMBER(19) ] 
@@ -46,12 +62,12 @@ JSON(students) = ARRAY[
                             OBJECT{ KEY(hy100) : NUMBER(9.5) },
                             OBJECT{ KEY(hy150) : NUMBER(9) } ]
                     } 
-                     ]
+                ]
 PRINT students
 
 /* EVERYTHING RELATED TO JSON MANIPULATION */
 PRINT "\n\n>>>>>>>>>> \"SET json_lvalue ASSIGN value\" examples\n"
-//change 3rdday temperature from 19 to 22
+//change 3rd day temperature from 19 to 22
 SET week_temperatures[2] ASSIGN NUMBER(22)
 PRINT week_temperatures
 
@@ -117,7 +133,7 @@ JSON(operators) = OBJECT{
                         },
                         KEY(operator%) : OBJECT{
                                             KEY(numbers: 2 % 3.14 (double converted to integer)) : NUMBER(2) % NUMBER(3.14),
-                                            KEY(numbers: 996 % 100 (grade expected to this project<3)) : NUMBER(996) % NUMBER(100)
+                                            KEY(numbers: 994 % 100 (grade expected to this project<3)) : NUMBER(994) % NUMBER(100)
                         },
                         KEY(operator<) : OBJECT{
                                             KEY(numbers: 2 < 3.14) : NUMBER(2) < NUMBER(3.14),
@@ -173,7 +189,15 @@ JSON(operators) = OBJECT{
 }
 PRINT operators
 
-
+PRINT "\n\n>>>>>>>>>> Special functions examples\n"
+PRINT "'operators' object is of size:" 
+PRINT SIZE_OF(operators)
+PRINT "and type:"
+PRINT TYPE_OF(operators)
+PRINT "So, is it empty after all?"
+PRINT IS_EMPTY(operators)
+PRINT "Finally, let's find out! Does it have key 'operator&&'?"
+PRINT HAS_KEY(operators, "operator&&")
 PRINT "~.~.~.~.~.~.~.~ THAT'S ALL FOLKS! ~.~.~.~.~.~.~.~"
 
 PROGRAM_END
