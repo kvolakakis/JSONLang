@@ -286,7 +286,7 @@ class JSON_val{
             //used to print a cell of an array or an object (without key)
             //if(json.arrayDisplay) json.arrayDisplay = !json.arrayDisplay;
         }
-         
+        return os;
     }
 
 
@@ -412,7 +412,7 @@ class JSON_val{
             string error = "Variable with name '" + this->getKey() + "' is not an array and, therefore, cannot be appended";
             ::error_message(error);
         }
-
+		return *this;
     }
     bool checkIfNumber(JSON_val value){
         if(value.getType() == INTEGER || value.getType() == DOUBLE)
