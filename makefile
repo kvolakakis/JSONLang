@@ -1,11 +1,11 @@
 compile:
-	g++ JSONLang.cpp -o json
+	g++ JSONLang.cpp  -std=c++0x -o json
 
 execute:
 	./json
 
 all:
-	g++ JSONLang.cpp -o json
+	g++ JSONLang.cpp  -std=c++0x -o json
 	./json
 
 clean:

@@ -11,7 +11,7 @@ Sto makefile kanontas:
 -make all : ginetai compile and run to project mas
 -make compile: ginetai compile to project mas
 -make execute: ekteleitai to project mas (arkei fysika na exei ginei prwta compile)
-(An epithymeite wstoso xwris makefile kanoume compile me 'g++ JSONLang.cpp -o json' kai meta ektelesh klasika './json'(if run on Linux).)
+(An epithymeite wstoso xwris makefile kanoume compile me 'g++ JSONLang.cpp  -std=c++0x -o json'(to  -std=c++0x einai parametros pou xrhsimopoieitai gia na ektelestoun oi dynatothtes tou c++11) kai meta ektelesh klasika './json'(if run on Linux).)
 
 Apo leitourgies exoume ylopoihsei ta panta ektos apo:
 -APPEND gia multiple, comma separated values (douleuei mono gia ena value an kanoume APPEND)
